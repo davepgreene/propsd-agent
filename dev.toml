@@ -1,0 +1,11 @@
+[metadata]
+host = "http://127.0.0.1:8080"
+
+[log]
+json = false
+level = "INFO"
+requests = false
+
+[properties.image]
+service = "foo-bar-service"
+version = "1.0.0"

@@ -1,0 +1,11 @@
+required = [
+    "github.com/sirupsen/logrus",
+    "github.com/gorilla/handlers",
+    "github.com/gorilla/mux",
+    "github.com/meatballhat/negroni-logrus",
+    "github.com/satori/go.uuid",
+    "github.com/spf13/cobra",
+    "github.com/spf13/viper",
+    "github.com/thoas/stats",
+    "github.com/urfave/negroni"
+]

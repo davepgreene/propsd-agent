@@ -7,12 +7,14 @@ import (
 	"time"
 	"io/ioutil"
 	"strings"
+	log "github.com/sirupsen/logrus"
 )
 
 type Proxy struct {
 	url *url.URL
 	handler http.Handler
 	client http.Client
+	data string
 }
 
 func New(url string, handler http.Handler) *Proxy {
@@ -24,6 +26,7 @@ func New(url string, handler http.Handler) *Proxy {
 		url: testutils.ParseURI(url),
 		client: client,
 		handler: handler,
+		data: "",
 	}
 }
 
@@ -35,14 +38,20 @@ func (p *Proxy) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		// generating the request failed
 	}
 
+	var bodyStr string
+
 	resp, err := p.client.Do(req)
 	if err != nil {
-		// making the request failed
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Warn("Error connecting to proxied target. Falling back to cached data.")
+		bodyStr = p.data
+	} else {
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		bodyStr = string(body)
+		p.data = bodyStr
 	}
-
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-	bodyStr := string(body)
 
 	r.Body = ioutil.NopCloser(strings.NewReader(bodyStr))
 	r.ContentLength = int64(len(bodyStr))

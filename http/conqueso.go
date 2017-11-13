@@ -25,8 +25,15 @@ func (h *conquesoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 
 	rw.Header().Set("Content-Type", "text/plain")
+	var props []byte
+	var status int
 
-	props, status := TransformProperties(body)
+	if len(body) > 0 {
+		props, status = TransformProperties(body)
+	} else {
+		props = []byte("")
+		status = http.StatusGone
+	}
 
 	rw.WriteHeader(status)
 	rw.Write(props)

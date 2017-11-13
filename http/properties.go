@@ -19,7 +19,14 @@ func (h *propertiesHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 
 	rw.Header().Set("Content-Type", "application/json")
-	rw.WriteHeader(http.StatusOK)
+	var status int
 
+	if len(body) > 0 {
+		status = http.StatusOK
+	} else {
+		status = http.StatusGone
+	}
+
+	rw.WriteHeader(status)
 	rw.Write(body)
 }

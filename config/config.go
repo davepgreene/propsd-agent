@@ -27,8 +27,7 @@ var tags = map[string]interface{}{
 }
 
 var propsd = map[string]interface{}{
-	"conqueso": "http://localhost:9301/conqueso",
-	"properties": "http://localhost:9301/properties",
+	"upstream": "http://localhost:9301/upstream",
 }
 
 // Defaults generates a set of default configuration options

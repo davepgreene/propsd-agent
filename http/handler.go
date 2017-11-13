@@ -25,19 +25,15 @@ func Handler(metadata *sources.Metadata) {
 	v1 := r.PathPrefix("/v1").Subrouter()
 	v1.HandleFunc("/metadata", newMetadataHandler(metadata).ServeHTTP)
 
-	// Core handlers
-	//v1.HandleFunc("/health", newHealthHandler(storage).ServeHTTP)
-	//v1.HandleFunc("/status", newStatusHandler(storage))
-
-	chain := alice.New(metadataMiddleware(metadata))
+	prox := proxy(viper.GetString("propsd.upstream"))
+	chain := alice.New(metadataMiddleware(metadata)).Append(prox)
 
 	// Conqueso handler
-	conquesoProxy := proxy(viper.GetString("propsd.conqueso"))
-	v1.Handle("/conqueso", chain.Append(conquesoProxy).ThenFunc(newConquesoHandler().ServeHTTP))
+	v1.Handle("/conqueso", chain.ThenFunc(newConquesoHandler().ServeHTTP))
 
 	// Properties handlers
-	propsProxy := proxy(viper.GetString("propsd.properties"))
-	v1.Handle("/properties", chain.Append(propsProxy).ThenFunc(newPropertiesHandler().ServeHTTP))
+	v1.Handle("/properties", chain.ThenFunc(newPropertiesHandler().ServeHTTP))
+
 
 	// Define our 404 handler
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)

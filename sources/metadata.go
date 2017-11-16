@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/davepgreene/propsd-agent/parsers"
 	"github.com/davepgreene/propsd-agent/utils"
+	"encoding/json"
 )
 
 type MetadataOptions struct {
@@ -97,4 +98,16 @@ func (m *Metadata) fetch(resc chan MetadataChannelResponse, errc chan MetadataCh
 
 func (m *Metadata) Properties() *parsers.MetadataProperties {
 	return m.parser.Properties()
+}
+
+func (m *Metadata) Ok() bool {
+	// Attempt to marshal the metadata object and determine its length. This
+	// way we can figure out if we actually ended up with valid metadata
+	// properties.
+	b, err := json.Marshal(m.Properties())
+	if err != nil || len(b) == 0 {
+		return false
+	}
+
+	return true
 }

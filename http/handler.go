@@ -5,15 +5,16 @@ import (
 	"net/http"
 	"time"
 
+	"encoding/json"
+	"github.com/davepgreene/propsd-agent/sources"
 	"github.com/davepgreene/propsd-agent/utils"
 	"github.com/gorilla/mux"
+	"github.com/justinas/alice"
 	"github.com/meatballhat/negroni-logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/thoas/stats"
 	"github.com/urfave/negroni"
-	"github.com/davepgreene/propsd-agent/sources"
-	"github.com/justinas/alice"
 )
 
 // Handler returns an http.Handler for the API.
@@ -34,6 +35,23 @@ func Handler(metadata *sources.Metadata) {
 	// Properties handlers
 	v1.Handle("/properties", chain.ThenFunc(newPropertiesHandler().ServeHTTP))
 
+	// Core handlers
+	v1.Handle("/health", chain.ThenFunc(
+		newStatusHandler(metadata, statsMiddleware, func(h *statusHandler, w http.ResponseWriter, r *http.Request) {
+			_, code := h.GenerateStatus(w, r)
+			w.WriteHeader(code)
+			w.Write([]byte(""))
+		}).ServeHTTP))
+
+	v1.Handle("/status", chain.ThenFunc(
+		newStatusHandler(metadata, statsMiddleware, func(h *statusHandler, w http.ResponseWriter, r *http.Request) {
+			status, code := h.GenerateStatus(w, r)
+			w.WriteHeader(code)
+
+			status.Code = code
+			b, _ := json.Marshal(status)
+			w.Write(b)
+		}).ServeHTTP))
 
 	// Define our 404 handler
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
